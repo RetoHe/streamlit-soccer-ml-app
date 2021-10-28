@@ -12,16 +12,28 @@ from preprocessing import *
 # title
 st.title("ML Soccer Predictor")
 
+game_day = st.number_input('GameDay', min_value=1, max_value=34, value=10, step=1)
+
 if st.button("Download"):
     Season_2021 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/2122/D1.csv")
+    Season_2020 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/2021/D1.csv")
     #Season_2020_c = pd.concat(Season_2020, axis=0, ignore_index=True)
-    #Season_2019 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/1920/D1.csv")
+    Season_2019 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/1920/D1.csv")
+    Season_2018 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/1819/D1.csv")
+    Season_2017 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/1718/D1.csv")
 
     Season_list = [
                Season_2021,
+               Season_2020,
+               Season_2019,
+               Season_2018,
+               Season_2017
                ]
+    Seasons = ["Season_2021", "Season_2020", "Season_2019", "Season_2018", "Season_2017"]
     db_concat = pd.concat(Season_list)
-    db_concat.to_csv(r'data/data.csv', index=False)
+    for i in range(len(Season_list)):
+        Season_list[i][0:(game_day * 9)].to_csv(r'data/raw/data_{}.csv'.format(Seasons[i]), index=False)
+    db_concat.to_csv(r"data/data.csv")
     st.success("Download successful")
 
 if st.button("Display Data"):
@@ -29,10 +41,23 @@ if st.button("Display Data"):
     st.dataframe(data)
 
 if st.button("Clean Data"):
-    data = pd.read_csv("data/data.csv")
-    data = clean_data(data)
-    data.to_csv(r'data/data_clean.csv', index=False)
-    st.dataframe(data)
+    #data = pd.read_csv("data/data.csv")
+    #data = clean_data(data)
+    clean_data()
+    #data.to_csv(r'data/data_clean.csv', index=False)
+    #st.dataframe()
+    st.success("Cleaning successful")
+
+if st.button("Merge Historical Data"):
+    df_2017 = pd.read_csv("data/clean/data_Season_2017.csv")
+    df_2018 = pd.read_csv("data/clean/data_Season_2018.csv")
+    df_2019 = pd.read_csv("data/clean/data_Season_2019.csv")
+    df_2020 = pd.read_csv("data/clean/data_Season_2020.csv")
+    df_2021 = pd.read_csv("data/clean/data_Season_2021.csv")
+    result = df_2017.append([df_2018, df_2019, df_2020, df_2021])
+    result.to_csv(r'data/data_clean.csv', index=False)
+
+    st.success("Merging successful")
     
 
 if st.button("Preprocess Data"):
@@ -54,7 +79,7 @@ if st.button("Train Model"):
 
     st.text("The model achieves an accuracy from: {}".format(test_score_log))
 
-data = pd.read_csv("data/data.csv")
+data = pd.read_csv("data/raw/data_Season_2021.csv")
 
 teams = data["HomeTeam"].unique()
 
@@ -72,13 +97,29 @@ if st.button("Get Home Team Data"):
 
     home_team_data = home_dict[hometeam]
     st.subheader(hometeam)
-    st.text(home_team_data)
+    st.text("Home Shoots: {}".format(home_dict[hometeam][0]))
+    st.text("Home Corners: {}".format(home_dict[hometeam][1]))
+    st.text("Home Fouls: {}".format(home_dict[hometeam][2]))
+    st.text("Yellow Cards: {}".format(home_dict[hometeam][3]))
+    st.text("Red Cards: {}".format(home_dict[hometeam][4]))
+    st.text("Home Wins: {}".format(home_dict[hometeam][5]))
+    st.text("Home Draws: {}".format(home_dict[hometeam][6]))
+    st.text("Home Loss: {}".format(home_dict[hometeam][7]))
+    #st.text(home_team_data)
 
 if st.button("Get Away Team Data"):
 
     away_team_data = away_dict[hometeam]
     st.subheader(awayteam)
-    st.text(away_team_data)
+    st.text("Away Shoots: {}".format(away_dict[awayteam][0]))
+    st.text("Away Corners: {}".format(away_dict[awayteam][1]))
+    st.text("Away Fouls: {}".format(away_dict[awayteam][2]))
+    st.text("Yellow Cards: {}".format(away_dict[awayteam][3]))
+    st.text("Red Cards: {}".format(away_dict[awayteam][4]))
+    st.text("Away Wins: {}".format(away_dict[awayteam][5]))
+    st.text("Away Draws: {}".format(away_dict[awayteam][6]))
+    st.text("Away Loss: {}".format(away_dict[awayteam][7]))
+    #st.text(away_team_data)
 
 result_dict = {1: "HomeWin", 2: "Draw", 3: "AwayWin"}
 
