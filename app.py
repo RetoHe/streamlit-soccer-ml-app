@@ -5,6 +5,8 @@ import joblib
 import numpy as np
 # Logistic Regression Model
 from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.tree import DecisionTreeClassifier
 
 from cleaning import *
 from preprocessing import *
@@ -21,15 +23,25 @@ if st.button("Download"):
     Season_2019 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/1920/D1.csv")
     Season_2018 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/1819/D1.csv")
     Season_2017 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/1718/D1.csv")
+    Season_2016 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/1617/D1.csv")
+    Season_2015 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/1516/D1.csv")
+    Season_2014 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/1415/D1.csv")
+    Season_2013 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/1314/D1.csv")
+    Season_2012 = pd.read_csv(r"https://www.football-data.co.uk/mmz4281/1213/D1.csv")
 
     Season_list = [
                Season_2021,
                Season_2020,
                Season_2019,
                Season_2018,
-               Season_2017
+               Season_2017,
+               Season_2016,
+               Season_2015,
+               Season_2014,
+               Season_2013,
+               Season_2012,
                ]
-    Seasons = ["Season_2021", "Season_2020", "Season_2019", "Season_2018", "Season_2017"]
+    Seasons = ["Season_2021", "Season_2020", "Season_2019", "Season_2018", "Season_2017", "Season_2016", "Season_2015", "Season_2014", "Season_2013", "Season_2012"]
     db_concat = pd.concat(Season_list)
     for i in range(len(Season_list)):
         Season_list[i][0:(game_day * 9)].to_csv(r'data/raw/data_{}.csv'.format(Seasons[i]), index=False)
@@ -67,17 +79,48 @@ if st.button("Preprocess Data"):
 
 filename = 'finalized_model.sav'
 
-if st.button("Train Model"):
-    logistic_model = LogisticRegression()
-    data = pd.read_csv("data/data_clean.csv")
-    X_train, X_test, y_train, y_test = preprocess_data(data)
-    logistic_model.fit(X_train, y_train)
-    logistic_prediction = logistic_model.predict(X_test)
-    test_score_log = round(logistic_model.score(X_test, y_test),2)
-    # save the model to disk
-    joblib.dump(logistic_model, filename)
+model = st.selectbox(
+    'Choose Model',
+    ('Logistic Regression', 'Naive Bayes Classifier', 'Decision Tree'))
 
-    st.text("The model achieves an accuracy from: {}".format(test_score_log))
+if st.button("Train Model"):
+    if model == "Logistic Regression":
+        logistic_model = LogisticRegression()
+        data = pd.read_csv("data/data_clean.csv")
+        X_train, X_test, y_train, y_test = preprocess_data(data)
+        logistic_model.fit(X_train, y_train)
+        logistic_prediction = logistic_model.predict(X_test)
+        test_score_log = round(logistic_model.score(X_test, y_test),2)
+    # save the model to disk
+        joblib.dump(logistic_model, filename)
+
+        st.text("The Logistic Regression model achieves an accuracy from: {}".format(test_score_log))
+
+    elif model == "Naive Bayes Classifier":
+        nb_model = GaussianNB()
+        data = pd.read_csv("data/data_clean.csv")
+        X_train, X_test, y_train, y_test = preprocess_data(data)
+        nb_model.fit(X_train, y_train)
+        nb_prediction = nb_model.predict(X_test)
+        test_score_nb = round(nb_model.score(X_test, y_test),2)
+    # save the model to disk
+        joblib.dump(nb_model, filename)
+
+        st.text("The Naive Bayes model achieves an accuracy from: {}".format(test_score_nb))
+
+    elif model == "Decision Tree":
+        dt_model = DecisionTreeClassifier()
+        data = pd.read_csv("data/data_clean.csv")
+        X_train, X_test, y_train, y_test = preprocess_data(data)
+        dt_model.fit(X_train, y_train)
+        dt_prediction = dt_model.predict(X_test)
+        test_score_dt = round(dt_model.score(X_test, y_test),2)
+    # save the model to disk
+        joblib.dump(dt_model, filename)
+
+        st.text("The Decision Tree model achieves an accuracy from: {}".format(test_score_dt))
+
+    
 
 data = pd.read_csv("data/raw/data_Season_2021.csv")
 
